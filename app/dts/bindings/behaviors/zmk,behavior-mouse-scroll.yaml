@@ -1,0 +1,16 @@
+# Copyright (c) 2020 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+description: Mouse scroll
+
+compatible: "zmk,behavior-mouse-scroll"
+
+include: one_param.yaml
+
+properties:
+  move_delta:
+    type: int
+  max_speed:
+    type: int
+  time_to_max:
+    type: int

@@ -1,0 +1,16 @@
+# Copyright (c) 2020 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+description: Mouse move
+
+compatible: "zmk,behavior-mouse-move"
+
+include: one_param.yaml
+
+properties:
+  move_delta:
+    type: int
+  max_speed:
+    type: int
+  time_to_max:
+    type: int
