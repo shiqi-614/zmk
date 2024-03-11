@@ -1,0 +1,2 @@
+#define JOYSTICK_MOVE 0
+#define JOYSTICK_SCROLL 1

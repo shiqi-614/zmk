@@ -1,0 +1,12 @@
+# Copyright (c) 2020 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+menuconfig JOYSTICK
+	bool "JOYSTICK Analogue Sensor"
+    default n
+    select ZMK_MOUSE
+    select NRFX_RTC2
+    select NRFX_SAADC
+    select NRFX_PPI
+	help
+	  Enable driver for Joystick analogue sensors.

@@ -1,0 +1,24 @@
+description: |
+  Sensor driver for analog joysticks
+compatible: "ergocai,joystick"
+
+properties:
+  label:
+    type: string
+    required: true
+  io-channels:
+    type: phandle-array
+    required: true
+    description: Analog pins for decoder
+  frequency:
+    type: int
+    required: false
+    description: How often to poll per second
+  min_on:
+    type: int
+    required: false
+    description: If the sensor is above this, then it is treated as on
+  reverse:
+    type: boolean
+    required: false
+    description: If true, then negative values are down/right    
