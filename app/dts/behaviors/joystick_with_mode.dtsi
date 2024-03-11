@@ -1,0 +1,15 @@
+/*
+ * Copyright (c) 2020 The ZMK Contributors
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+/ {
+    behaviors {
+        /omit-if-no-ref/ joystick_with_mode: behavior_joystick_with_mode {
+            compatible = "ergocai,behavior_joystick_with_mode";
+            label = "JOYSTICK_WITH_MODE";
+            #sensor-binding-cells = <1>;
+        };
+    };
+};

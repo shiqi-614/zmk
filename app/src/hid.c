@@ -430,6 +430,13 @@ int zmk_hid_mouse_buttons_release(zmk_mouse_button_flags_t buttons) {
     }
     return 0;
 }
+
+void zmk_hid_mouse_movement_set(int16_t x, int16_t y) {
+    mouse_report.body.d_x = x;
+    mouse_report.body.d_y = y;
+    LOG_DBG("Mouse movement set to 0x%02X 0x%02X ", mouse_report.body.d_x, mouse_report.body.d_y);
+}
+
 void zmk_hid_mouse_clear(void) { memset(&mouse_report.body, 0, sizeof(mouse_report.body)); }
 
 #endif // IS_ENABLED(CONFIG_ZMK_MOUSE)

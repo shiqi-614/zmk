@@ -1,0 +1,22 @@
+# Copyright (c) 2022 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+description: Sensor joystick behavior
+
+compatible: "ergocai,behavior_joystick_with_mode"
+
+
+properties:
+  label:
+    type: string
+    required: true
+  "#sensor-binding-cells":
+    type: int
+    required: true
+    const: 1
+  # bindings:
+    # type: phandles
+    # required: true
+
+sensor-binding-cells:
+  - param1

@@ -227,6 +227,7 @@ int zmk_keymap_apply_position_state(uint8_t source, int layer, uint32_t position
 
 int zmk_keymap_position_state_changed(uint8_t source, uint32_t position, bool pressed,
                                       int64_t timestamp) {
+    LOG_DBG("zmk_keymap_position_state_changed");
     if (pressed) {
         zmk_keymap_active_behavior_layer[position] = _zmk_keymap_layer_state;
     }
@@ -306,6 +307,7 @@ int zmk_keymap_sensor_event(uint8_t sensor_index,
 #endif /* ZMK_KEYMAP_HAS_SENSORS */
 
 int keymap_listener(const zmk_event_t *eh) {
+    LOG_DBG("keymap_listener");
     const struct zmk_position_state_changed *pos_ev;
     if ((pos_ev = as_zmk_position_state_changed(eh)) != NULL) {
         return zmk_keymap_position_state_changed(pos_ev->source, pos_ev->position, pos_ev->state,

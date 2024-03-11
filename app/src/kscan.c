@@ -38,14 +38,18 @@ static void zmk_kscan_callback(const struct device *dev, uint32_t row, uint32_t 
         .column = column,
         .state = (pressed ? ZMK_KSCAN_EVENT_STATE_PRESSED : ZMK_KSCAN_EVENT_STATE_RELEASED)};
 
+    LOG_DBG("put message and submit work begin");
     k_msgq_put(&zmk_kscan_msgq, &ev, K_NO_WAIT);
     k_work_submit(&msg_processor.work);
+    LOG_DBG("put message and submit work end");
 }
 
 void zmk_kscan_process_msgq(struct k_work *item) {
     struct zmk_kscan_event ev;
 
+    LOG_DBG("zmk_kscan_process_msgq");
     while (k_msgq_get(&zmk_kscan_msgq, &ev, K_NO_WAIT) == 0) {
+        LOG_DBG("get message from quef");
         bool pressed = (ev.state == ZMK_KSCAN_EVENT_STATE_PRESSED);
         int32_t position = zmk_matrix_transform_row_column_to_position(ev.row, ev.column);
 

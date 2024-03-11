@@ -1,0 +1,37 @@
+description: |
+  Sensor driver for analog joysticks
+compatible: "ergocai,joystick"
+
+properties:
+  label:
+    type: string
+    required: true
+  adc_x_channel:
+    type: int
+    required: true
+    description: Analog pins for decoder
+  adc_y_channel:
+    type: int
+    required: true
+    description: Analog pins for decoder
+  adc_channel_reference:
+    type: string
+    required: false
+    description: Analog pins for decoder
+  adc_channel_gain:
+    type: string
+    required: false
+    description: Analog pins for decoder
+  polling_rate_hertz:
+    type: int
+    required: false
+    description: The frequenty in HZ
+  move_step:
+    type: int
+    required: false
+    description: mouse move step
+  deadzone:
+    type: string 
+    required: false
+    description: If the sensor is above this, then it is treated as on
+
