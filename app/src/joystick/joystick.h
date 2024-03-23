@@ -7,33 +7,28 @@
 #pragma once
 
 #include <zephyr/device.h>
-#include <zephyr/drivers/gpio.h>
+#include <nrfx_saadc.h>
 
 struct io_channel_config {
     const char *label;
     uint8_t channel;
 };
 
-struct joy_config {
-    int min_on;
-    int frequency;
-    bool reverse;
+struct joystick_config {
+    int x_channel_idx;
+    int y_channel_idx;
+    nrf_saadc_reference_t adc_reference;
+    nrf_saadc_gain_t adc_gain;
+    int polling_rate_hertz;
+    int move_step;
+    float deadzone;
+
 };
 
-struct joy_data {
-    int setup;
-
-    uint16_t x_adc_raw;
-
-    uint16_t y_adc_raw;
-
-    int zero_value;
-    int value;
-    int delta;
-    int last_rotate;
-    int last_press;
-
-    const struct device *dev;
+struct joystick_data {
+    int x;
+    int y;
+    struct k_work work;
+    struct joystick_config config;
 };
-
-void handle_joystick_report(int x, int y);
+void handle_joystick_report(int x, int y, struct joystick_config config);

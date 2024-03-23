@@ -6,19 +6,32 @@ properties:
   label:
     type: string
     required: true
-  io-channels:
-    type: phandle-array
+  adc_x_channel:
+    type: int
     required: true
     description: Analog pins for decoder
-  frequency:
+  adc_y_channel:
+    type: int
+    required: true
+    description: Analog pins for decoder
+  adc_channel_reference:
+    type: string
+    required: false
+    description: Analog pins for decoder
+  adc_channel_gain:
+    type: string
+    required: false
+    description: Analog pins for decoder
+  polling_rate_hertz:
     type: int
     required: false
-    description: How often to poll per second
-  min_on:
+    description: The frequenty in HZ
+  move_step:
     type: int
+    required: false
+    description: mouse move step
+  deadzone:
+    type: string 
     required: false
     description: If the sensor is above this, then it is treated as on
-  reverse:
-    type: boolean
-    required: false
-    description: If true, then negative values are down/right    
+
