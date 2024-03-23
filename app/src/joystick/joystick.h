@@ -9,10 +9,12 @@
 #include <zephyr/device.h>
 #include <nrfx_saadc.h>
 
-struct io_channel_config {
-    const char *label;
-    uint8_t channel;
-};
+#define NUM_ADC_CHANS 2
+
+static const nrf_saadc_input_t ANALOG_INPUT_MAP[] = {
+    NRF_SAADC_INPUT_AIN0, NRF_SAADC_INPUT_AIN1, NRF_SAADC_INPUT_AIN2, NRF_SAADC_INPUT_AIN3,
+    NRF_SAADC_INPUT_AIN4, NRF_SAADC_INPUT_AIN5, NRF_SAADC_INPUT_AIN6, NRF_SAADC_INPUT_AIN7};
+
 
 struct joystick_config {
     int x_channel_idx;
@@ -34,6 +36,8 @@ struct joystick_data {
     struct joystick_config config;
 };
 
-void send_joystick_report(struct joystick_data data);
+static struct joystick_data joy_data;
+
+void send_joystick_report(struct joystick_data *data);
 
 void get_joystick_report(int adcX, int adcY, struct joystick_data *data);

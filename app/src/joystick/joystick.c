@@ -39,9 +39,9 @@ float convert(int value) {
     return res;
 }
 
-void send_joystick_report(struct joystick_data data) {
-    int x = data.x;
-    int y = data.y;
+void send_joystick_report(struct joystick_data *data) {
+    int x = data->x;
+    int y = data->y;
     LOG_DBG("handle_joystick_report %d %d\n", (int)x, (int)y);
     zmk_hid_mouse_movement_set(x, y);
     zmk_endpoints_send_mouse_report();

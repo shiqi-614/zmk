@@ -16,91 +16,21 @@
 #include <nrfx_saadc.h>
 
 #include "joystick.h"
-
-#define NUM_ADC_CHANS 2
-#define RTC_INPUT_FREQ 32768
-#define RTC_FREQ_TO_PRESCALER(FREQ) (uint16_t)(((RTC_INPUT_FREQ) / (FREQ)) - 1)
+#include "rtc_ppi.h"
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
-#define ERR_CHECK(err, msg)                                                                        \
-    if (err != NRFX_SUCCESS)                                                                       \
-    LOG_ERR(msg " - %d\n", err)
 
-static const nrf_saadc_input_t ANALOG_INPUT_MAP[] = {
-    NRF_SAADC_INPUT_AIN0, NRF_SAADC_INPUT_AIN1, NRF_SAADC_INPUT_AIN2, NRF_SAADC_INPUT_AIN3,
-    NRF_SAADC_INPUT_AIN4, NRF_SAADC_INPUT_AIN5, NRF_SAADC_INPUT_AIN6, NRF_SAADC_INPUT_AIN7};
-
-static struct joystick_data joy_data;
-
-
-static void rtc_handler(nrfx_rtc_int_type_t int_type) {
-    switch (int_type) {
-    case NRFX_RTC_INT_TICK:
-        break;
-    default:
-        LOG_DBG("rtc interrupt %d\n", int_type);
-        break;
-    }
-}
-
-nrfx_rtc_t rtc_init(int hertz) {
-    uint32_t err_code;
-
-    // Initialize RTC instance
-    nrfx_rtc_config_t config = NRFX_RTC_DEFAULT_CONFIG;
-    /* config.prescaler = 65535; */
-    config.prescaler = RTC_FREQ_TO_PRESCALER(hertz);
-    LOG_DBG("Prescaler = %d\n", config.prescaler);
-
-    IRQ_CONNECT(DT_IRQN(DT_NODELABEL(rtc2)), DT_IRQ(DT_NODELABEL(rtc2), priority),
-                nrfx_rtc_2_irq_handler, NULL, 0);
-
-    const nrfx_rtc_t rtc = NRFX_RTC_INSTANCE(2);
-    err_code = nrfx_rtc_init(&rtc, &config, rtc_handler);
-    ERR_CHECK(err_code, "rtc initialization error");
-
-    // Enable tick event & interrupt
-    nrfx_rtc_tick_enable(&rtc, true);
-
-    nrfx_rtc_enable(&rtc);
-    return rtc;
-}
-
-// https://devzone.nordicsemi.com/f/nordic-q-a/72487/how-to-use-nrfx-saadc-driver-on-zephyr-rtos
-void ppi_init(nrfx_rtc_t rtc) {
-    /**** RTC -> ADC *****/
-    // Trigger task sample from timer
-    nrf_ppi_channel_t m_timer_saadc_ppi_channel;
-    nrfx_err_t err_code = nrfx_ppi_channel_alloc(&m_timer_saadc_ppi_channel);
-    ERR_CHECK(err_code, "PPI channel allocation error");
-
-    err_code = nrfx_ppi_channel_assign(
-        m_timer_saadc_ppi_channel, nrfx_rtc_event_address_get(&rtc, NRF_RTC_EVENT_TICK),
-        nrf_saadc_task_address_get(DT_REG_ADDR(DT_NODELABEL(adc)), NRF_SAADC_TASK_SAMPLE));
-    ERR_CHECK(err_code, " PPI channel assignment error");
-
-    err_code = nrfx_ppi_channel_enable(m_timer_saadc_ppi_channel);
-    ERR_CHECK(err_code, " PPI channel enable error");
-}
-
-
-
-struct adc_sample {
-    nrf_saadc_value_t samples[NUM_ADC_CHANS];
-    int32_t timestamp;
-};
-
-int current_adc_buffer = 0;
-struct adc_sample adc_samples[2];
+static int current_adc_buffer = 0;
+static nrf_saadc_value_t saadc_samples[2][NUM_ADC_CHANS];
 #define NEXT_BUFFER ((current_adc_buffer + 1) % 2)
 
 void joystick_work(struct k_work *item) {
     struct joystick_data *data=
         CONTAINER_OF(item, struct joystick_data, work);
-    send_joystick_report(joy_data);
-
+    send_joystick_report(data);
 }
+
 void adc_handler(const nrfx_saadc_evt_t *p_event) {
     switch (p_event->type) {
     case NRFX_SAADC_EVT_DONE: ///< Event generated when the buffer is filled with samples.
@@ -114,7 +44,7 @@ void adc_handler(const nrfx_saadc_evt_t *p_event) {
         break;
     case NRFX_SAADC_EVT_BUF_REQ: ///< Event generated when the next buffer for continuous conversion
                                  ///< is requested.
-        nrfx_saadc_buffer_set(adc_samples[NEXT_BUFFER].samples, NUM_ADC_CHANS);
+        nrfx_saadc_buffer_set(&saadc_samples[NEXT_BUFFER][0], NUM_ADC_CHANS);
         current_adc_buffer = NEXT_BUFFER;
         break;
     case NRFX_SAADC_EVT_READY: ///< Event generated when the first buffer is acquired by the
@@ -160,7 +90,7 @@ void adc_init(struct joystick_config config) {
                                        adc_handler);
     ERR_CHECK(err, "saadc setting advanced mode");
 
-    err = nrfx_saadc_buffer_set(&(adc_samples[current_adc_buffer].samples[0]), NUM_ADC_CHANS);
+    err = nrfx_saadc_buffer_set(&saadc_samples[current_adc_buffer][0], NUM_ADC_CHANS);
     ERR_CHECK(err, "saadc buffer set");
 
     err = nrfx_saadc_mode_trigger();
