@@ -26,9 +26,14 @@ struct joystick_config {
 };
 
 struct joystick_data {
+    int raw_x;
+    int raw_y;
     int x;
     int y;
     struct k_work work;
     struct joystick_config config;
 };
-void handle_joystick_report(int x, int y, struct joystick_config config);
+
+void send_joystick_report(struct joystick_data data);
+
+void get_joystick_report(int adcX, int adcY, struct joystick_data *data);

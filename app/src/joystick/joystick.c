@@ -8,6 +8,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include <math.h>
 #include "joystick.h"
 
+
 #define M_PI 3.14159265358979323846
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
@@ -38,7 +39,17 @@ float convert(int value) {
     return res;
 }
 
-void handle_joystick_report(int adcX, int adcY, struct joystick_config config) {
+void send_joystick_report(struct joystick_data data) {
+    int x = data.x;
+    int y = data.y;
+    LOG_DBG("handle_joystick_report %d %d\n", (int)x, (int)y);
+    zmk_hid_mouse_movement_set(x, y);
+    zmk_endpoints_send_mouse_report();
+}
+
+void get_joystick_report(int adcX, int adcY, struct joystick_data *data) {
+    struct joystick_config config = data->config;
+
     float x = convert(adcX);
     float y = convert(adcY);
 
@@ -49,11 +60,7 @@ void handle_joystick_report(int adcX, int adcY, struct joystick_config config) {
     x = sin(radians(angle)) * radius;
     y = -cos(radians(angle)) * radius;
 
-    x = x * config.move_step;
-    y = y * config.move_step;
-    if (x != 0 || y != 0) {
-        LOG_DBG("handle_joystick_report %d %d\n", (int)x, (int)y);
-        zmk_hid_mouse_movement_set(x, y);
-        zmk_endpoints_send_mouse_report();
-    }
+    data->x = (x * config.move_step);
+    data->y = (y * config.move_step);
+
 }

@@ -34,7 +34,6 @@ static const nrf_saadc_input_t ANALOG_INPUT_MAP[] = {
 static struct joystick_data joy_data;
 
 
-
 static void rtc_handler(nrfx_rtc_int_type_t int_type) {
     switch (int_type) {
     case NRFX_RTC_INT_TICK:
@@ -94,22 +93,24 @@ struct adc_sample {
 
 int current_adc_buffer = 0;
 struct adc_sample adc_samples[2];
-#define CURRENT_BUFFER current_adc_buffer
 #define NEXT_BUFFER ((current_adc_buffer + 1) % 2)
 
 void joystick_work(struct k_work *item) {
     struct joystick_data *data=
         CONTAINER_OF(item, struct joystick_data, work);
-    handle_joystick_report(data->x, data->y, data->config);
+    send_joystick_report(joy_data);
 
 }
 void adc_handler(const nrfx_saadc_evt_t *p_event) {
     switch (p_event->type) {
     case NRFX_SAADC_EVT_DONE: ///< Event generated when the buffer is filled with samples.
         nrf_saadc_task_trigger(NRF_SAADC, NRF_SAADC_TASK_START);
-        joy_data.x = p_event->data.done.p_buffer[0];
-        joy_data.y = p_event->data.done.p_buffer[1];
-        k_work_submit(&joy_data.work);
+        int raw_x = p_event->data.done.p_buffer[0];
+        int raw_y = p_event->data.done.p_buffer[1];
+        get_joystick_report(raw_x, raw_y, &joy_data);
+        if (joy_data.x != 0 || joy_data.y != 0) {
+            k_work_submit(&joy_data.work);
+        }
         break;
     case NRFX_SAADC_EVT_BUF_REQ: ///< Event generated when the next buffer for continuous conversion
                                  ///< is requested.
@@ -159,7 +160,7 @@ void adc_init(struct joystick_config config) {
                                        adc_handler);
     ERR_CHECK(err, "saadc setting advanced mode");
 
-    err = nrfx_saadc_buffer_set(&(adc_samples[CURRENT_BUFFER].samples[0]), NUM_ADC_CHANS);
+    err = nrfx_saadc_buffer_set(&(adc_samples[current_adc_buffer].samples[0]), NUM_ADC_CHANS);
     ERR_CHECK(err, "saadc buffer set");
 
     err = nrfx_saadc_mode_trigger();
