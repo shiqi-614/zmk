@@ -26,7 +26,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #define radians(degrees) (degrees * M_PI / 180.0)
 
-const int range = 1024 * 8 * 2;
+const int range = 4096;
 const int center = range / 2;
 
 float convert(int value) {

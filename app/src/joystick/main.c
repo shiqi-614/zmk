@@ -16,6 +16,7 @@
 #include <nrfx_saadc.h>
 
 #include "joystick.h"
+#include "battery.h"
 #include "rtc_ppi.h"
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
@@ -25,18 +26,22 @@ static int current_adc_buffer = 0;
 static nrf_saadc_value_t saadc_samples[2][NUM_ADC_CHANS];
 #define NEXT_BUFFER ((current_adc_buffer + 1) % 2)
 
+
 void joystick_work(struct k_work *item) {
     struct joystick_data *data=
         CONTAINER_OF(item, struct joystick_data, work);
     send_joystick_report(data);
 }
 
+
 void adc_handler(const nrfx_saadc_evt_t *p_event) {
     switch (p_event->type) {
     case NRFX_SAADC_EVT_DONE: ///< Event generated when the buffer is filled with samples.
         nrf_saadc_task_trigger(NRF_SAADC, NRF_SAADC_TASK_START);
-        int raw_x = p_event->data.done.p_buffer[0];
-        int raw_y = p_event->data.done.p_buffer[1];
+        int raw_battery = p_event->data.done.p_buffer[0];
+        update_battery_level(raw_battery);
+        int raw_x = p_event->data.done.p_buffer[1];
+        int raw_y = p_event->data.done.p_buffer[2];
         get_joystick_report(raw_x, raw_y, &joy_data);
         if (joy_data.x != 0 || joy_data.y != 0) {
             k_work_submit(&joy_data.work);
@@ -59,6 +64,7 @@ void adc_handler(const nrfx_saadc_evt_t *p_event) {
 }
 
 void adc_init(struct joystick_config config) {
+    LOG_DBG("adc init");
     nrfx_err_t err;
     nrfx_saadc_adv_config_t adc_adv_config = NRFX_SAADC_DEFAULT_ADV_CONFIG;
     adc_adv_config.start_on_end = true;
@@ -71,22 +77,31 @@ void adc_init(struct joystick_config config) {
 
 
     nrfx_saadc_channel_t adc_channels[NUM_ADC_CHANS] = {
+        NRFX_SAADC_DEFAULT_CHANNEL_SE(NRF_SAADC_INPUT_VDDHDIV5, 0),
         NRFX_SAADC_DEFAULT_CHANNEL_SE(ANALOG_INPUT_MAP[config.x_channel_idx], config.x_channel_idx),
         NRFX_SAADC_DEFAULT_CHANNEL_SE(ANALOG_INPUT_MAP[config.y_channel_idx], config.y_channel_idx),
     };
 
     uint8_t channel_mask = 0;
     for (int i = 0; i < NUM_ADC_CHANS; i++) {
-        adc_channels[i].channel_config.reference = config.adc_reference;
-        adc_channels[i].channel_config.gain = config.adc_gain;
-
+        /* adc_channels[i].channel_config.reference = NRF_SAADC_REFERENCE_INTERNAL; */
+        /* adc_channels[i].channel_config.gain = NRF_SAADC_GAIN1_5; */
+        if (i == 0) {
+            adc_channels[i].channel_config.reference = NRF_SAADC_REFERENCE_INTERNAL;
+            adc_channels[i].channel_config.gain = NRF_SAADC_GAIN1_2;
+        } else {
+            adc_channels[i].channel_config.reference = config.adc_reference;
+            adc_channels[i].channel_config.gain = config.adc_gain;
+        }
         channel_mask |= 1 << (adc_channels[i].channel_index);
     }
+
+    /* adc_channels[0].channel_config.gain = NRF_SAADC_GAIN1_4; */
 
     err = nrfx_saadc_channels_config(adc_channels, NUM_ADC_CHANS);
     ERR_CHECK(err, "nrfx_saadc channel config error");
 
-    err = nrfx_saadc_advanced_mode_set(channel_mask, SAADC_RESOLUTION_VAL_14bit, &adc_adv_config,
+    err = nrfx_saadc_advanced_mode_set(channel_mask, SAADC_RESOLUTION_VAL_12bit, &adc_adv_config,
                                        adc_handler);
     ERR_CHECK(err, "saadc setting advanced mode");
 

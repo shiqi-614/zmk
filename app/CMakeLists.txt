@@ -93,6 +93,7 @@ add_subdirectory(src/split)
 
 target_sources_ifdef(CONFIG_JOYSTICK app PRIVATE src/joystick/main.c)
 target_sources_ifdef(CONFIG_JOYSTICK app PRIVATE src/joystick/joystick.c)
+target_sources_ifdef(CONFIG_JOYSTICK app PRIVATE src/joystick/battery.c)
 target_sources_ifdef(CONFIG_JOYSTICK app PRIVATE src/joystick/rtc_ppi.c)
 
 target_sources_ifdef(CONFIG_USB_DEVICE_STACK app PRIVATE src/usb.c)

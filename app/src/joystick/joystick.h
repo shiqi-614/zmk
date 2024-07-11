@@ -9,7 +9,7 @@
 #include <zephyr/device.h>
 #include <nrfx_saadc.h>
 
-#define NUM_ADC_CHANS 2
+#define NUM_ADC_CHANS 3
 
 static const nrf_saadc_input_t ANALOG_INPUT_MAP[] = {
     NRF_SAADC_INPUT_AIN0, NRF_SAADC_INPUT_AIN1, NRF_SAADC_INPUT_AIN2, NRF_SAADC_INPUT_AIN3,

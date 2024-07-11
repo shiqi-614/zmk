@@ -39,6 +39,7 @@ nrfx_rtc_t rtc_init(int hertz) {
 void ppi_init(nrfx_rtc_t rtc) {
     /**** RTC -> ADC *****/
     // Trigger task sample from timer
+    LOG_DBG("PPI init");
     nrf_ppi_channel_t m_timer_saadc_ppi_channel;
     nrfx_err_t err_code = nrfx_ppi_channel_alloc(&m_timer_saadc_ppi_channel);
     ERR_CHECK(err_code, "PPI channel allocation error");
